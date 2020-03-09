@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class Valve : MonoBehaviour
 {
@@ -8,18 +9,22 @@ public class Valve : MonoBehaviour
     private float currentTurnAmount;
     [SerializeField]
     private float turnSensitivity;
+    [SerializeField]
     private float turnLenciency;
 
     private float desiredAngle;
     private bool shouldSink;
 
-    public HealthControl healthLeft;
+    public delegate void Submarine();
+    public static event Submarine Sinking;
 
     [Header ("Keyboard Debug")]
     [SerializeField]
     private KeyCode leftTurn;
     [SerializeField]
     private KeyCode rightTurn;
+    [SerializeField]
+    private Text positionText;
 
     private void Start()
     {
@@ -29,11 +34,11 @@ public class Valve : MonoBehaviour
 
     private IEnumerator AngleDecider()
     {
-        if (Random.value >= .75f)
+        if (Random.value >= .9f)
         {
             desiredAngle = Random.Range(0, 360);
+            positionText.text = desiredAngle.ToString();
         }
-        print(desiredAngle);
         Sink();
         yield return new WaitForSeconds(1);
         StartCoroutine(AngleDecider());
@@ -45,7 +50,7 @@ public class Valve : MonoBehaviour
         {
             currentTurnAmount -= turnSensitivity;
         }
-        else if(Input.GetKey(rightTurn) && !Input.GetKeyDown(leftTurn))
+        else if (Input.GetKey(rightTurn) && !Input.GetKeyDown(leftTurn))
         {
             currentTurnAmount += turnSensitivity;
         }
@@ -58,13 +63,15 @@ public class Valve : MonoBehaviour
         {
             shouldSink = true;
         }
+
+        transform.rotation = Quaternion.Euler(0, 0, - 1 * currentTurnAmount % 360);
     }
 
     private void Sink()
     {
         if (shouldSink)
         {
-            shouldSink = false;
+            Sinking();
         }
     }
 }
