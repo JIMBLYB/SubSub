@@ -9,7 +9,7 @@ public class HealthController : MonoBehaviour
 {
     // Starts at 101 to allow the UI to update correctly,
     // by lowering the health by 1 immediately
-    public static int health = 101; 
+    public int health = 101; 
     [SerializeField]
     private int healthLossRate; // How much health should be lost at once
 
