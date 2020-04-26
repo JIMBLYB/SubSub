@@ -36,7 +36,7 @@ public class HealthController : MonoBehaviour
         {
             deathPanel.SetActive(false);
             health = 100;
-            arduino.WriteToArduino("reset");
+            arduino.WriteToArduino("r"); // Tells the arduino to reset the motor
         }
     }
     
@@ -46,7 +46,7 @@ public class HealthController : MonoBehaviour
     private void Sink()
     {
         health -= healthLossRate;
-        arduino.WriteToArduino("sink");
+        arduino.WriteToArduino("s"); // Tells the arduino to rotate the motor
 
         // Ends the game on 0 health
         if (health <= 0)
