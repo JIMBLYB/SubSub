@@ -1,13 +1,19 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.UI;
 
+/// <summary>
+/// Script handling if the submarine should be 
+/// sinking or not
+/// </summary>
 public class HealthController : MonoBehaviour
 {
-    public static int health = 101;
+    // Starts at 101 to allow the UI to update correctly,
+    // by lowering the health by 1 immediately
+    public static int health = 101; 
     [SerializeField]
-    private int healthLossRate;
+    private int healthLossRate; // How much health should be lost at once
+
+    public Arduino arduino;
 
     [Header("Debugging")]
     [SerializeField]
@@ -17,21 +23,41 @@ public class HealthController : MonoBehaviour
 
     private void Start()
     {
-        Sink();
+        Sink(); // Calling this method in Start calibrates the UI
+        // Subscribes Sink() to the Sinking method
+        // Called by any of the 3 Valve.cs scripts
         Valve.Sinking += Sink;
     }
 
+    private void Update()
+    {
+        // Resets the game
+        if (Input.GetKeyDown(KeyCode.R))
+        {
+            deathPanel.SetActive(false);
+            health = 100;
+            arduino.WriteToArduino("reset");
+        }
+    }
+    
+    /// <summary>
+    /// Handles the loss of health
+    /// </summary>
     private void Sink()
     {
         health -= healthLossRate;
-        healthText.text = "Health Remaining: " + health;
+        arduino.WriteToArduino("sink");
 
+        // Ends the game on 0 health
         if (health <= 0)
         {
             Sunken();
         }
     }
 
+    /// <summary>
+    /// Handles anything related to the end of the game
+    /// </summary>
     private void Sunken()
     {
         deathPanel.SetActive(true);

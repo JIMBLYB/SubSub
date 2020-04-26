@@ -1,77 +1,70 @@
 ﻿using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.UI;
 
+/// <summary>
+/// Class handling all of the inputs and outputs of a valve
+/// </summary>
 public class Valve : MonoBehaviour
 {
     [SerializeField]
-    private float currentTurnAmount;
+    public float currentTurnAmount; // Set in Arduino.cs
     [SerializeField]
-    private float turnSensitivity;
+    private float turnSensitivity; // How much of an angle one notch on the rotary encoder should translate to
     [SerializeField]
-    private float turnLenciency;
+    private float turnLenciency;  // The tolerance for the correct angle (Game is too difficult if you need the perfect amount)
 
-    private float desiredAngle;
-    private bool shouldSink;
+    private float desiredAngle; // Angle needed to prevent sinking (The point that turnLeniency adds to)
+    private bool shouldSink; // If this valve is causing the submarine to sink
 
+    // Sinking event, only subscribed by HealthController.cs' Sink() method
     public delegate void Submarine();
     public static event Submarine Sinking;
 
-    [Header ("Keyboard Debug")]
-    [SerializeField]
-    private KeyCode leftTurn;
-    [SerializeField]
-    private KeyCode rightTurn;
-    [SerializeField]
-    private Text positionText;
-
     private void Start()
     {
-        currentTurnAmount = 0;
+        // Resets turn amount at the start of the game
+        // Since the value is set by the arduino, it can change before the the game is started
+        currentTurnAmount = 0; 
+
         StartCoroutine(AngleDecider());
     }
 
+    /// <summary>
+    /// A 1/10 chance of changing the desired angle each second
+    /// </summary>
+    /// <returns> A 1 second timer</returns>
     private IEnumerator AngleDecider()
     {
-        if (Random.value >= .9f)
+        if (Random.value >= .9f) // 1/10 chance
         {
             desiredAngle = Random.Range(0, 360);
-            positionText.text = desiredAngle.ToString();
         }
-        Sink();
+
+        // Checks if the submarine should sink and invokes the event subscribed by HealthController
+        // Putting it in this coroutine ensures that it will only check once per second,
+        // and using an event means that it will only work once per second even if the 
+        // other valves also run it
+        if (shouldSink)
+        {
+            Sinking();
+        }
+
+        // A one second wait before restarting the coroutine for a loop
         yield return new WaitForSeconds(1);
         StartCoroutine(AngleDecider());
     }
 
     private void Update()
     {
-        if (Input.GetKey(leftTurn) && !Input.GetKeyDown(rightTurn))
-        {
-            currentTurnAmount -= turnSensitivity;
-        }
-        else if (Input.GetKey(rightTurn) && !Input.GetKeyDown(leftTurn))
-        {
-            currentTurnAmount += turnSensitivity;
-        }
-
-        if (currentTurnAmount >= desiredAngle - turnLenciency && currentTurnAmount <= desiredAngle + turnLenciency)
+        // Checks if the angle is in the correct range and therefore if the submarine should sink or not
+        if (currentTurnAmount >= desiredAngle - turnLenciency
+         && currentTurnAmount <= desiredAngle + turnLenciency)
         {
             shouldSink = false;
         }
         else
         {
             shouldSink = true;
-        }
-
-        transform.rotation = Quaternion.Euler(0, 0, - 1 * currentTurnAmount % 360);
-    }
-
-    private void Sink()
-    {
-        if (shouldSink)
-        {
-            Sinking();
         }
     }
 }
