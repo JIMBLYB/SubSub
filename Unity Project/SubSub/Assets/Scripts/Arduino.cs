@@ -29,6 +29,9 @@ public class Arduino : MonoBehaviour
 
         // Sets up serial communication between Unity
         // and the Arduino
+        // Since I'm using TinkerCAD this can't connect to the arduino used in it,
+        // although the connection is a success, I can't acutally figure out what it's
+        // connecting to, just that it isn't the arduino circuit on TinkerCAD
         serial = new SerialPort("\\\\.\\COM" + arduino, 9600);
         serial.ReadTimeout = 50;
         serial.Open();
